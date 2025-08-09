@@ -1,11 +1,9 @@
 import { Networking } from "@flamework/networking";
 
-interface ClientToServerFuncs {
-	event(param1: string): void;
-}
+interface ClientToServerFuncs {}
 
 interface ServerToClientFuncs {
-	event(param1: string): void;
+	destroyPlaneClient(): void;
 }
 
-export const GlobalFuncs = Networking.createEvent<ClientToServerFuncs, ServerToClientFuncs>();
+export const GlobalFuncs = Networking.createFunction<ClientToServerFuncs, ServerToClientFuncs>();

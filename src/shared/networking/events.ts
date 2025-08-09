@@ -5,7 +5,7 @@ interface ClientToServerEvents {
 }
 
 interface ServerToClientEvents {
-	event(param1: string): void;
+	onPlaneSpawn(plane: Model): void;
 }
 
 export const GlobalEvents = Networking.createEvent<ClientToServerEvents, ServerToClientEvents>();
