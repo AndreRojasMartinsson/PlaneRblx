@@ -85,20 +85,22 @@ export function awaitHumanoidFromCharacter(character: Instance): Promise<Option<
 	return Promise.resolve(Option.wrap(humanoid));
 }
 
-export function awaitHumanoidFromPlayer(player: Player): Promise<Option<Humanoid>> {
+export async function awaitHumanoidFromPlayer(player: Player): Promise<Option<Humanoid>> {
 	const character = player.Character;
 
-	if (character === undefined) return Promise.resolve(Option.none());
+	if (character === undefined) return Option.none();
 
 	const clock = os.clock();
 	let humanoid: Humanoid | undefined;
 
-	while (os.clock() - clock < 10 || humanoid === undefined) {
-		humanoid = character.FindFirstChildOfClass("Humanoid");
+	while (os.clock() - clock < 10) {
 		task.wait();
+		humanoid = character.FindFirstChildOfClass("Humanoid");
+
+		if (humanoid !== undefined) break;
 	}
 
-	return Promise.resolve(Option.wrap(humanoid));
+	return Option.wrap(humanoid);
 }
 
 export function awaitRootPartFromPlayer(player: Player): Promise<Option<BasePart>> {
