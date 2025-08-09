@@ -1,0 +1,38 @@
+---
+owner: personal
+environments:
+  - label: staging
+    branches: [main]
+    targetAccess: private
+    targetNamePrefix: environmentLabel
+  - label: production
+    tagCommit: true
+    branches: [production]
+    targetAccess: public
+    targetOverrides:
+      configuration:
+        enableStudioAccessToApis: false
+        playableDevices: [computer]
+target:
+  experience:
+    # icon: marketing/game-icon.png
+    configuration:
+      playableDevices: [computer]
+      avatarType: r15
+      avatarAnimationType: standard
+      enableStudioAccessToApis: true
+    places:
+      start:
+        file: game.rbxl
+        configuration:
+          name: Plane Sim
+          maxPlayerCount: 1
+          serverFill: maximum
+state:
+  remote:
+    region:
+      custom:
+        name: eeur
+        endpoint: https://9a19a26ace0278ed5dfaf7d43d6ea936.r2.cloudflarestorage.com/plane-sim-mantle-states
+    bucket: plane-sim-mantle-states
+    key: plane-sim

@@ -1,0 +1,11 @@
+[creator]
+type = "user"
+id = 52878194
+
+[codegen]
+typescript = true
+style = "flat"
+
+[inputs.assets]
+path = "assets/**/*"
+output_path = "src/shared"
