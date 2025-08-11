@@ -1,40 +1,26 @@
 import { BaseComponent, Component } from "@flamework/components";
 import { OnStart } from "@flamework/core";
-import { CollectionService } from "@rbxts/services";
-import { PlanePrefab } from "shared/types/Plane";
-import { t } from "@rbxts/t";
 import { Bin } from "@rbxts/bin";
 import { Cleanable } from "shared/modules/Cleanable";
 import { awaitHumanoidFromPlayer } from "shared/utilities/character";
 
 @Component({
-	tag: "PlaneServer",
-	instanceGuard: t.any,
+	tag: "PlaneSeater",
 })
-export class PlaneSeaterComponent extends BaseComponent<{}, PlanePrefab> implements OnStart, Cleanable {
+export class PlaneSeaterComponent extends BaseComponent<{}, Seat> implements OnStart, Cleanable {
 	private _bin = new Bin();
 
 	onStart(): void {
-		this.instance.WaitForChild("Root");
-
-		const captainSeat = CollectionService.GetTagged("Plane_Seat_CPT").filter(instance => {
-			return instance.IsDescendantOf(this.instance);
-		});
-
-		const seat = captainSeat.remove(0);
-		if (seat === undefined || !seat.IsA("Seat")) {
-			return;
-		}
-
 		const prompt = new Instance("ProximityPrompt");
+
 		prompt.MaxActivationDistance = 100;
 		prompt.HoldDuration = 0.5;
 		prompt.RequiresLineOfSight = false;
-		prompt.Parent = seat;
+		prompt.Parent = this.instance;
 
 		this._bin.add(
-			seat.GetPropertyChangedSignal("Occupant").Connect(() => {
-				prompt.Enabled = seat.Occupant === undefined;
+			this.instance.GetPropertyChangedSignal("Occupant").Connect(() => {
+				prompt.Enabled = this.instance.Occupant === undefined;
 			}),
 		);
 
@@ -55,7 +41,7 @@ export class PlaneSeaterComponent extends BaseComponent<{}, PlanePrefab> impleme
 					part.Massless = true;
 				}
 
-				seat.Sit(humanoid);
+				this.instance.Sit(humanoid);
 			}),
 		);
 	}
