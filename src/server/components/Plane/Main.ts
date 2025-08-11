@@ -3,18 +3,15 @@ import { OnStart } from "@flamework/core";
 import { Bin } from "@rbxts/bin";
 import { Cleanable } from "shared/modules/Cleanable";
 import { PlanePrefab } from "shared/types/Plane";
-import { t } from "@rbxts/t";
 import { Players } from "@rbxts/services";
 import { Events } from "server/networking";
 import { Funcs } from "server/networking";
 
 @Component({
 	tag: "PlaneServer",
-	instanceGuard: t.any,
 })
 export class PlaneServerComponent extends BaseComponent<{}, PlanePrefab> implements Cleanable, OnStart {
 	private _bin = new Bin();
-
 	private _currentPlayer: Player | undefined;
 
 	private setNetworkOwner(player?: Player) {
