@@ -9,8 +9,9 @@ import { EngineSimulator, EngineState } from "./modules/EngineSimulator";
 @Component({
 	tag: "EngineSystem",
 	defaults: {
-		EngineSpoolRateUp: 0.1,
-		EngineSpoolRateDown: 0.8,
+		ThrottleRateChange: 0.1,
+		StartupScale: 0.2,
+		PerEngineThrust: 590_000,
 	},
 })
 export class EngineComponent extends BaseComponent<Attributes, PlanePrefab> implements OnPhysics, OnStart {
@@ -18,16 +19,13 @@ export class EngineComponent extends BaseComponent<Attributes, PlanePrefab> impl
 	private _bin = new Bin();
 
 	public engines = {
-		Left: new EngineSimulator(),
-		Right: new EngineSimulator(),
+		Left: new EngineSimulator({ startupScale: 0.2 }),
+		Right: new EngineSimulator({ startupScale: 0.2 }),
 	};
 
-	public antiSkidEnabled = true;
-	public parkBrakeEngaged = true;
-	public brakeCommand = 0.0;
-	public effectivePressure = 0.0;
+	public throttleLever = 0;
 
-	constructor(private planeComponent: PlaneComponent) {
+	constructor() {
 		super();
 	}
 
@@ -36,79 +34,63 @@ export class EngineComponent extends BaseComponent<Attributes, PlanePrefab> impl
 			this.keyboard.keyDown.Connect((key, processed) => {
 				if (processed) return;
 
-				if (key === Enum.KeyCode.LeftShift) {
-					this.brakeCommand = 1;
-				} else if (key === Enum.KeyCode.P) {
-					this.parkBrakeEngaged = !this.parkBrakeEngaged;
-					this.brakeCommand = this.parkBrakeEngaged ? 1 : 0;
-				}
-			}),
-		);
-
-		this._bin.add(
-			this.keyboard.keyUp.Connect(key => {
-				if (key === Enum.KeyCode.LeftShift) {
-					this.brakeCommand = 0;
+				if (key === Enum.KeyCode.One) {
+					if (this.engines.Left.isStarted()) {
+						this.engines.Left.shutdown();
+					} else {
+						this.engines.Left.start();
+					}
+				} else if (key === Enum.KeyCode.Two) {
+					if (this.engines.Right.isStarted()) {
+						this.engines.Right.shutdown();
+					} else {
+						this.engines.Right.start();
+					}
 				}
 			}),
 		);
 	}
 
 	onPhysics(dt: number): void {
-		if (this.parkBrakeEngaged) {
-			this.brakeCommand = 1;
-		}
+		this.updateLeftEngine(dt);
+		this.updateRightEngine(dt);
 
-		this.updateEffectivePressure(dt);
+		const rKeyDown = this.keyboard.isKeyDown(Enum.KeyCode.R);
+		const fKeyDown = this.keyboard.isKeyDown(Enum.KeyCode.F);
+		const factor = rKeyDown && fKeyDown ? 0 : rKeyDown ? 1 : fKeyDown ? -1 : 0;
 
-		const isBraking = this.brakeCommand > 0.0 || this.parkBrakeEngaged;
-		const hinges = this.instance.Root.Hinges.Rear.GetChildren();
-
-		for (const hinge of hinges) {
-			if (!hinge.IsA("HingeConstraint")) continue;
-
-			hinge.ActuatorType = isBraking ? Enum.ActuatorType.Motor : Enum.ActuatorType.None;
-
-			if (!isBraking) continue;
-
-			const torque = this.pressureToTorque(this.effectivePressure);
-
-			hinge.MotorMaxAcceleration = 10;
-			hinge.MotorMaxTorque = this.computeAntiskidTorque(hinge, torque);
-			hinge.AngularSpeed = 0;
-		}
+		this.throttleLever = math.clamp(this.throttleLever + this.attributes.ThrottleRateChange * factor, 0, 1);
 	}
 
-	private updateEffectivePressure(dt: number) {
-		const viscosityFactor = this.attributes.FluidViscosity * (1 + (25 - this.temperature) / 100);
-		const desiredPressure = this.brakeCommand * this.attributes.HydraulicPressure;
-		const pressureChangeRate =
-			1 / (this.attributes.BrakeReleaseDelay + this.attributes.FluidCompressibility + viscosityFactor);
+	updateLeftEngine(dt: number) {
+		const { thrust: thrustFactor } = this.engines.Left.update(dt, this.throttleLever);
 
-		this.effectivePressure += (desiredPressure - this.effectivePressure) * pressureChangeRate * dt;
+		const thrusts = this.instance.Root.Thrust;
+		const blades = this.instance.OtherParts.Engines.Blades;
+		const effectiveThrust = thrustFactor * this.attributes.PerEngineThrust;
+
+		const angularVelocity = this.getFanAngularVelocity(this.engines.Left);
+
+		thrusts.Left.Force = new Vector3(-effectiveThrust, 0, 0);
+		blades.Left.Root.HingeConstraint.AngularVelocity = angularVelocity;
 	}
 
-	private pressureToTorque(pressure: number): number {
-		return (pressure / 3000) * this.attributes.MaxTorque;
+	updateRightEngine(dt: number) {
+		const { N1, N2, thrust: thrustFactor } = this.engines.Right.update(dt, this.throttleLever);
+
+		const thrusts = this.instance.Root.Thrust;
+		const blades = this.instance.OtherParts.Engines.Blades;
+		const effectiveThrust = thrustFactor * this.attributes.PerEngineThrust;
+
+		const angularVelocity = this.getFanAngularVelocity(this.engines.Right);
+
+		thrusts.Right.Force = new Vector3(-effectiveThrust, 0, 0);
+		blades.Right.Root.HingeConstraint.AngularVelocity = angularVelocity;
 	}
 
-	private computeAntiskidTorque(hinge: HingeConstraint, commandedTorque: number): number {
-		const wheelObject = hinge.Attachment1?.Parent;
-		assert(wheelObject !== undefined);
-		assert(wheelObject.IsA("Part"));
-
-		const wheelVelocity = wheelObject.AssemblyAngularVelocity.Magnitude;
-		const aircraftSpeed = this.planeComponent?.getSpeed();
-		assert(aircraftSpeed !== undefined);
-
-		const expectedWheelSpeed = aircraftSpeed / (wheelObject.Size.X / 2);
-		const slipRatio = (expectedWheelSpeed - math.abs(wheelVelocity)) / expectedWheelSpeed;
-
-		if (this.antiSkidEnabled && slipRatio > this.attributes.SkidThreshold) {
-			return commandedTorque * 0.1;
-		}
-
-		return commandedTorque;
+	private getFanAngularVelocity(simulator: EngineSimulator): number {
+		const rpm = (simulator.getN1() / 100) * 800;
+		return rpm * ((2 * math.pi) / 60);
 	}
 
 	public clean() {
@@ -117,6 +99,7 @@ export class EngineComponent extends BaseComponent<Attributes, PlanePrefab> impl
 }
 
 export interface Attributes {
-	EngineSpoolRateUp: number;
-	EngineSpoolRateDown: number;
+	ThrottleRateChange: number;
+	StartupScale: number;
+	PerEngineThrust: number;
 }

@@ -4,7 +4,7 @@ import { Bin } from "@rbxts/bin";
 import { Cleanable } from "shared/modules/Cleanable";
 import { PlanePrefab } from "shared/types/Plane";
 
-const REQUIRED_COMPONENTS = ["HydraulicBrakes"];
+const REQUIRED_COMPONENTS = ["HydraulicBrakes", "EngineSystem"];
 
 @Component({
 	tag: "PlaneClient",

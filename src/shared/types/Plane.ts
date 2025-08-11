@@ -150,7 +150,6 @@ export interface PlanePrefab extends Model {
 		Captain: Seat & {
 			Seater: Script;
 			Main: Script;
-			ProximityPrompt: ProximityPrompt;
 		};
 	};
 	OtherParts: Model & {

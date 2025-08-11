@@ -32,7 +32,7 @@ export class EngineSimulator {
 
 	private _parameters: Parameters;
 
-	constructor(parameters?: Parameters) {
+	constructor(parameters?: Partial<Parameters>) {
 		const params = {
 			groundIdleN1: 22,
 			flightIdleN1: 30,
@@ -44,7 +44,7 @@ export class EngineSimulator {
 			fuelOnN2: 22,
 			relayLightOffDelayMin: 0.6,
 			relayLightOffDelayMax: 1.2,
-			startupScale: 0.2, // 2.8 default- short due to fast debugging iteration
+			startupScale: 2.8,
 		};
 
 		if (parameters === undefined) {
@@ -53,14 +53,18 @@ export class EngineSimulator {
 		}
 
 		for (const [key, value] of Object.entries(parameters)) {
-			if (key in params) {
-				continue;
-			}
-
 			params[key] = value;
 		}
 
 		this._parameters = params;
+	}
+
+	getN1() {
+		return this._N1;
+	}
+
+	isStarted() {
+		return this._state !== EngineState.OFF;
 	}
 
 	getIdleN1() {

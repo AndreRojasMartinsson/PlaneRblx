@@ -12,10 +12,10 @@
         "@rbxts/bin": "^1.4.0",
         "@rbxts/clack": "^3.1.1",
         "@rbxts/object-utils": "^1.0.4",
+        "@rbxts/rotype": "^0.0.5",
         "@rbxts/rust-classes": "^0.13.0",
         "@rbxts/services": "^1.5.5",
         "@rbxts/string-utils": "^1.0.3",
-        "@rbxts/t": "^3.2.1",
         "@rbxts/wait-for": "^0.1.5",
         "@rbxutil/buffer-util": "^0.3.1",
         "@rbxutil/find": "^1.0.0",
@@ -38,6 +38,9 @@
         "rbxts-transformer-flamework": "^1.3.1",
         "roblox-ts": "^3.0.0",
         "typescript": "5.5.3",
+      },
+      "peerDependencies": {
+        "@rbxts/t": "3.2.1",
       },
     },
   },
@@ -97,6 +100,8 @@
     "@rbxts/object-utils": ["@rbxts/object-utils@1.0.4", "", {}, "sha512-dLLhf022ipV+9i910sOE7kl9losKHoon0WgeerHqVMQA5EYsLUsVT2AxhJuhk8MiDn5oJ2GiFofE/LadY9TpJQ=="],
 
     "@rbxts/phantom": ["@rbxts/phantom@0.6.3", "", {}, "sha512-ydg7sKabnyR1Euv9ItjnUy/HFD+n6NXf/bjgZhd3inyfrNbNCuOjFPrsHRbgwB9hFRUnPiSAd1CUSxMGAT27Cg=="],
+
+    "@rbxts/rotype": ["@rbxts/rotype@0.0.5", "", { "dependencies": { "@rbxts/object-utils": "^1.0.4" } }, "sha512-w+ADJX1d3Q3bXaV+tORW1LI/4N8IJCOGo0w2zaH9nVZiNXL910kk8ZkuTNkJ47rehAW1K/OwqyDGyDkeMa4uOA=="],
 
     "@rbxts/rust-classes": ["@rbxts/rust-classes@0.13.0", "", {}, "sha512-xbszbjccrRzwGMSIPoES3GlSg4XKCsTGb/J6B3UNo89+SBMFrWT/hZWf2zf3K1g2FJetOQg3W6xGMLfybJB1IA=="],
 
