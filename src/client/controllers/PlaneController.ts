@@ -1,6 +1,6 @@
 import { Components } from "@flamework/components";
 import { Controller, Dependency, OnStart } from "@flamework/core";
-import { PlaneClientComponent } from "client/components/Plane/Main";
+import { PlaneComponent } from "client/components/Plane/Base";
 import { Events, Funcs } from "client/networking";
 import { isCleanable } from "shared/modules/Cleanable";
 
@@ -19,7 +19,7 @@ export class PlaneController implements OnStart {
 			obj.onClean();
 		};
 
-		components.onComponentRemoved<PlaneClientComponent>(cleanup);
+		components.onComponentRemoved<PlaneComponent>(cleanup);
 
 		Events.onPlaneSpawn.connect(plane => {
 			this._currentPlane = plane;
